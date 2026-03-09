@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QR API</title>
+    <script src="../lib/qr-code-styling.js"></script>
+    <style>
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            display: flex; justify-content: center; align-items: center; 
+            overflow: hidden; background: transparent;
+        }
+        canvas, img { max-width: 100vw; max-height: 100vh; object-fit: contain; }
+    </style>
+</head>
+<body>
+    <div id="canvas"></div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        
+        // --- Extensive Parameter Parsing ---
+        const data = params.get('data') || params.get('text') || "https://google.com";
+        const size = parseInt(params.get('size')) || 300;
+        const margin = parseInt(params.get('margin')) || 10;
+        
+        // Colors & Gradients
+        const color1 = params.get('color') || params.get('color1') || "#000000";
+        const color2 = params.get('color2') || null;
+        const gradientType = params.get('gradient') || "linear"; // linear or radial
+        const rotation = parseFloat(params.get('rotation')) || 0;
+        
+        // Styles
+        const dotType = params.get('dots') || "extra-rounded";
+        const cornerType = params.get('corners') || "extra-rounded";
+        const cornerDotType = params.get('corner_dots') || "dot";
+        
+        // Background
+        const bg = params.get('bg') || "transparent";
+        
+        // Logo
+        const logo = params.get('logo') || params.get('image') || "";
+        const logoSize = parseFloat(params.get('logo_size')) || 0.4;
+        const logoMargin = parseInt(params.get('logo_margin')) || 5;
+
+        const options = {
+            width: size,
+            height: size,
+            type: "canvas",
+            data: data,
+            margin: margin,
+            qrOptions: {
+                typeNumber: 0,
+                mode: "Byte",
+                errorCorrectionLevel: "H"
+            },
+            dotsOptions: {
+                type: dotType,
+                color: color1
+            },
+            backgroundOptions: {
+                color: bg,
+            },
+            cornersSquareOptions: {
+                type: cornerType,
+                color: params.get('corner_color') || color1
+            },
+            cornersDotOptions: {
+                type: cornerDotType,
+                color: params.get('corner_dot_color') || color1
+            },
+            imageOptions: {
+                crossOrigin: "anonymous",
+                margin: logoMargin,
+                imageSize: logoSize
+            }
+        };
+
+        // Apply Gradient if color2 exists
+        if (color2) {
+            options.dotsOptions.gradient = {
+                type: gradientType,
+                rotation: rotation,
+                colorStops: [
+                    { offset: 0, color: color1 },
+                    { offset: 1, color: color2 }
+                ]
+            };
+        }
+
+        if (logo) {
+            options.image = logo;
+        }
+
+        const qrCode = new QRCodeStyling(options);
+        
+        // Append and clear body to ensure ONLY the image/canvas is shown
+        qrCode.append(document.getElementById("canvas"));
+
+        // If 'img' param is true, convert to image for easy "Right Click > Save"
+        if (params.get('render') === 'img' || true) {
+            qrCode.getRawData("png").then((blob) => {
+                const url = URL.createObjectURL(blob);
+                const img = document.createElement('img');
+                img.src = url;
+                document.body.innerHTML = '';
+                document.body.appendChild(img);
+                
+                // Auto-download if requested
+                if (params.get('download') === 'true') {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'qr-code.png';
+                    link.click();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

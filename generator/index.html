@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Stylist - QR Suite</title>
+    <style>
+        :root {
+            --primary: #facc15;
+            --primary-hover: #eab308;
+            --bg: #0f172a;
+            --sidebar-bg: #1e293b;
+            --border: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 380px;
+            background: var(--sidebar-bg);
+            padding: 30px;
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+        }
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .back-btn:hover { color: var(--primary); }
+        
+        h1 { margin: 0; font-size: 1.5rem; color: #fff; letter-spacing: -1px; }
+        h1 span { color: var(--primary); }
+
+        .section {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-size: 0.85rem; color: #ccc; }
+        
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        input:focus, select:focus { border-color: var(--primary); }
+        
+        input[type="color"] {
+            width: 100%; height: 35px; border: none; background: none; cursor: pointer;
+        }
+
+        .row { display: flex; gap: 12px; }
+        .row > div { flex: 1; }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        button:hover { background: var(--primary-hover); }
+
+        .preview-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .api-panel {
+            margin-top: auto;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px dashed var(--border);
+        }
+        .api-panel h4 { margin: 0 0 10px 0; font-size: 0.8rem; color: var(--primary); }
+        #api-url {
+            font-family: monospace;
+            font-size: 0.75rem;
+            word-break: break-all;
+            color: var(--text-muted);
+            user-select: all;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h1>QR <span>Stylist</span></h1>
+        
+        <div class="section">
+            <span class="section-title">Content</span>
+            <div class="form-group">
+                <input type="text" id="data" value="https://google.com" placeholder="URL or text...">
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="section-title">Colors</span>
+            <div class="row">
+                <div class="form-group">
+                    <label>Main</label>
+                    <input type="color" id="color" value="#facc15">
+                </div>
+                <div class="form-group">
+                    <label>Background</label>
+                    <input type="color" id="bg" value="#ffffff">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="section-title">Dimensions</span>
+            <div class="row">
+                <div class="form-group">
+                    <label>Size (px)</label>
+                    <input type="number" id="size" value="300" step="50">
+                </div>
+                <div class="form-group">
+                    <label>Margin</label>
+                    <input type="number" id="margin" value="20">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="section-title">Style</span>
+            <div class="form-group">
+                <label>Dots</label>
+                <select id="dots">
+                    <option value="extra-rounded">Extra Rounded</option>
+                    <option value="rounded">Rounded</option>
+                    <option value="classy">Classy</option>
+                    <option value="classy-rounded">Classy Rounded</option>
+                    <option value="square">Square</option>
+                    <option value="dots">Dots</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Corners</label>
+                <select id="corners">
+                    <option value="extra-rounded">Extra Rounded</option>
+                    <option value="rounded">Rounded</option>
+                    <option value="square">Square</option>
+                    <option value="dot">Dot</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="download-btn">Download PNG</button>
+
+        <div class="api-panel">
+            <h4>Live API Endpoint</h4>
+            <div id="api-url">Loading...</div>
+        </div>
+    </div>
+
+    <div class="main">
+        <a href="../index.html" class="back-btn">← Back to Suite</a>
+        <div class="preview-container">
+            <iframe id="qr-iframe" src="../api/index.html?data=https://google.com&size=300" frameborder="0" width="300" height="300" scrolling="no"></iframe>
+        </div>
+        <p style="margin-top: 30px; color: var(--text-muted); font-size: 0.9rem;">Real-time preview rendered via API</p>
+    </div>
+
+    <script>
+        const inputs = ['data', 'color', 'bg', 'size', 'margin', 'dots', 'corners'];
+        
+        function updatePreview() {
+            const params = new URLSearchParams();
+            inputs.forEach(id => {
+                params.set(id, document.getElementById(id).value);
+            });
+            
+            // For preview, we need to encode # as %23 for the URL
+            const urlParams = params.toString().replace(/#/g, '%23');
+            const url = `../api/index.html?${urlParams}`;
+            
+            const iframe = document.getElementById('qr-iframe');
+            iframe.src = url;
+            iframe.width = document.getElementById('size').value;
+            iframe.height = document.getElementById('size').value;
+            
+            // Update the display URL
+            const absoluteApiUrl = window.location.origin + window.location.pathname.replace('generator/index.html', 'api/index.html') + '?' + urlParams;
+            document.getElementById('api-url').innerText = absoluteApiUrl;
+        }
+
+        // Add event listeners to all inputs for real-time update
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', updatePreview);
+            document.getElementById(id).addEventListener('change', updatePreview);
+        });
+
+        document.getElementById('download-btn').addEventListener('click', () => {
+            const iframe = document.getElementById('qr-iframe');
+            const img = iframe.contentWindow.document.querySelector('img');
+            if (img && img.src) {
+                const link = document.createElement('a');
+                link.href = img.src;
+                link.download = 'qrcode.png';
+                link.click();
+            }
+        });
+
+        // Initialize
+        updatePreview();
+    </script>
+</body>
+</html>

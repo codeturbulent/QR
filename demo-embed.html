@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embed Demo - QR Suite</title>
+    <style>
+        body { font-family: system-ui; text-align: center; padding: 40px; background: #f4f4f4; }
+        .box { background: white; padding: 20px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        p { color: #666; }
+        .example-code { background: #eee; padding: 10px; border-radius: 4px; font-family: monospace; display: block; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>QR Code Embedding (Option 2)</h1>
+    <p>Using the <code>qr-embed.js</code> helper to turn <code>&lt;img&gt;</code> tags into working QR codes.</p>
+
+    <div class="box">
+        <h3>This looks like an image but is a functional QR!</h3>
+        <!-- You just write this tag -->
+        <img class="qr-api" src="api/index.html?data=Hello World&color=%23ff4b2b&color2=%23ff416c&dots=rounded" width="300" height="300" />
+    </div>
+
+    <div style="margin-top: 40px;">
+        <h3>How to use:</h3>
+        <p>1. Add the <code>qr-api</code> class to your image tags.</p>
+        <p>2. Link to the <code>qr-embed.js</code> script at the bottom of your page.</p>
+        <code class="example-code">
+            &lt;img class="qr-api" src="api/index.html?data=Hello" width="200" height="200" /&gt;<br>
+            &lt;script src="lib/qr-embed.js"&gt;&lt;/script&gt;
+        </code>
+    </div>
+
+    <!-- Include the magic script -->
+    <script src="lib/qr-embed.js"></script>
+</body>
+</html>

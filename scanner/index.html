@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QR Scanner - QR Suite</title>
+    <style>
+        :root {
+            --primary: #facc15;
+            --primary-hover: #eab308;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --border: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; transition: all 0.2s ease; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+        }
+        .back-btn {
+            position: absolute;
+            top: -60px;
+            left: 0;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .back-btn:hover { color: var(--primary); }
+
+        h1 { font-size: 2.5rem; margin: 0 0 10px 0; letter-spacing: -1px; }
+        h1 span { color: var(--primary); }
+        p.desc { color: var(--text-muted); margin-bottom: 40px; }
+
+        .scanner-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 30px;
+            box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5);
+        }
+
+        .video-wrapper {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #overlayContainer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        button, .file-label {
+            padding: 12px;
+            background: #2d3748;
+            color: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        button:hover:not(:disabled), .file-label:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+            grid-column: span 2;
+            font-weight: 700;
+        }
+
+        .result-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: left;
+            border: 1px solid var(--border);
+        }
+        .result-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+        }
+        #result {
+            font-family: monospace;
+            word-break: break-all;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-btn">← Back to Suite</a>
+        <h1>QR <span>Scanner</span></h1>
+        <p class="desc">Point your camera or upload an image to decode.</p>
+
+        <div class="scanner-card">
+            <div class="video-wrapper">
+                <video id="video" playsinline muted></video>
+                <div id="overlayContainer"></div>
+            </div>
+
+            <div class="controls">
+                <button id="startBtn" class="btn-primary">Start Real-time Scan</button>
+                <button id="stopBtn" disabled>Stop</button>
+                <button id="switchBtn" disabled>Switch Cam</button>
+                <button id="flashBtn" disabled>Toggle Flash</button>
+                <label class="file-label">
+                    <input id="fileInput" type="file" accept="image/*" />
+                    Upload Image
+                </label>
+            </div>
+
+            <div class="result-panel">
+                <span class="result-label">Decoded Data</span>
+                <div id="result">Waiting for input...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import QrScanner from "https://unpkg.com/qr-scanner@1.4.2/qr-scanner.min.js";
+
+        const video = document.getElementById("video");
+        const resultEl = document.getElementById("result");
+        const startBtn = document.getElementById("startBtn");
+        const stopBtn = document.getElementById("stopBtn");
+        const switchBtn = document.getElementById("switchBtn");
+        const flashBtn = document.getElementById("flashBtn");
+        const fileInput = document.getElementById("fileInput");
+
+        let facingMode = "environment";
+        let qrScanner = null;
+
+        function updateUI(running) {
+            startBtn.style.display = running ? 'none' : 'flex';
+            stopBtn.disabled = !running;
+            switchBtn.disabled = !running;
+            if (!running) {
+                flashBtn.disabled = true;
+                resultEl.textContent = "Waiting for input...";
+            }
+        }
+
+        function initScanner() {
+            if (qrScanner) qrScanner.destroy();
+            qrScanner = new QrScanner(
+                video,
+                (result) => {
+                    resultEl.textContent = typeof result === "string" ? result : result.data;
+                },
+                {
+                    preferredCamera: facingMode,
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                    returnDetailedScanResult: true,
+                }
+            );
+        }
+
+        async function start() {
+            try {
+                if (!qrScanner) initScanner();
+                await qrScanner.start();
+                const hasFlash = await qrScanner.hasFlash();
+                flashBtn.disabled = !hasFlash;
+                updateUI(true);
+            } catch (e) {
+                alert("Camera error. Ensure HTTPS and permissions.");
+            }
+        }
+
+        async function stop() {
+            if (qrScanner) await qrScanner.stop();
+            updateUI(false);
+        }
+
+        fileInput.addEventListener("change", async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            try {
+                const res = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
+                resultEl.textContent = res.data;
+            } catch {
+                resultEl.textContent = "No QR found in image";
+            }
+        });
+
+        startBtn.addEventListener("click", start);
+        stopBtn.addEventListener("click", stop);
+        switchBtn.addEventListener("click", async () => {
+            facingMode = facingMode === "environment" ? "user" : "environment";
+            initScanner();
+            await start();
+        });
+        flashBtn.addEventListener("click", async () => {
+            const on = await qrScanner.isFlashOn();
+            await qrScanner.turnFlash(!on);
+        });
+
+        updateUI(false);
+    </script>
+</body>
+</html>
