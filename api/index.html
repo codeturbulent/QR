@@ -17,14 +17,13 @@
     <div id="canvas"></div>
     <script>
         const params = new URLSearchParams(window.location.search);
-        
         // --- Extensive Parameter Parsing ---
         const data = params.get('data') || params.get('text') || "https://google.com";
         const size = parseInt(params.get('size')) || 300;
         const margin = parseInt(params.get('margin')) || 10;
         
         // Colors & Gradients
-        const color1 = params.get('color') || params.get('color1') || "#000000";
+        const color1 = "#"+ params.get('color') || params.get('color1') || "000000";
         const color2 = params.get('color2') || null;
         const gradientType = params.get('gradient') || "linear"; // linear or radial
         const rotation = parseFloat(params.get('rotation')) || 0;
