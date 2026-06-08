@@ -139,7 +139,7 @@
         <div class="section">
             <span class="section-title">Content</span>
             <div class="form-group">
-                <input type="text" id="data" value="https://google.com" placeholder="URL or text...">
+                <input type="text" id="data" value="Good looks good" placeholder="URL or text...">
             </div>
         </div>
 
@@ -148,11 +148,17 @@
             <div class="row">
                 <div class="form-group">
                     <label>Main</label>
-                    <input type="color" id="color" value="#facc15">
+                    <input type="color" id="color" value="#2d5d5d">
                 </div>
                 <div class="form-group">
                     <label>Background</label>
                     <input type="color" id="bg" value="#ffffff">
+                </div>
+            </div>
+            <div class="row"> 
+                 <div class="form-group">
+                    <label for="transparent" >Transparent</label>
+                    <input type="checkbox" id="transparent">
                 </div>
             </div>
         </div>
@@ -212,16 +218,22 @@
     </div>
 
     <script>
-        const inputs = ['data', 'color', 'bg', 'size', 'margin', 'dots', 'corners'];
+        const inputs = ['data', 'color' , 'size', 'margin', 'dots', 'corners' , "transparent","bg" ];
+      
         
         function updatePreview() {
+   
             const params = new URLSearchParams();
             inputs.forEach(id => {
-                params.set(id, document.getElementById(id).value);
+                if (id == "bg" && document.getElementById("transparent").checked ) {
+                    return
+                }
+                params.set(id, document.getElementById(id).value.replace("#",""));
             });
             
             // For preview, we need to encode # as %23 for the URL
-            const urlParams = params.toString().replace(/#/g, '%23');
+            const urlParams = params.toString();
+            console.log(urlParams)
             const url = `../api/index.html?${urlParams}`;
             
             const iframe = document.getElementById('qr-iframe');
